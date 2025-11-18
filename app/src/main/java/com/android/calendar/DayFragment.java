@@ -18,6 +18,7 @@ package com.android.calendar;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,13 +28,10 @@ import android.view.animation.AnimationUtils;
 import android.widget.ProgressBar;
 import android.widget.ViewSwitcher;
 import android.widget.ViewSwitcher.ViewFactory;
-
 import androidx.fragment.app.Fragment;
-
 import com.android.calendar.CalendarController.EventInfo;
 import com.android.calendar.CalendarController.EventType;
 import com.android.calendar.calendarcommon2.Time;
-
 import ws.xsoh.etar.R;
 
 /**
@@ -172,6 +170,9 @@ public class DayFragment extends Fragment implements CalendarController.EventHan
     }
 
     private void goTo(Time goToTime, boolean ignoreTime, boolean animateToday) {
+
+        Log.d("DayView", "goTo ----> " + goToTime);
+
         if (mViewSwitcher == null) {
             // The view hasn't been set yet. Just save the time and use it later.
             mSelectedDay.set(goToTime);

@@ -31,21 +31,17 @@ import android.provider.CalendarContract.Instances;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.util.Log;
-
 import com.android.calendar.settings.GeneralPreferences;
-
-import org.dmfs.rfc5545.DateTime;
-import org.dmfs.rfc5545.iterable.RecurrenceSet;
-import org.dmfs.rfc5545.iterable.instanceiterable.RuleInstances;
-import org.dmfs.rfc5545.recur.RecurrenceRule;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
-
+import org.dmfs.rfc5545.DateTime;
+import org.dmfs.rfc5545.iterable.RecurrenceSet;
+import org.dmfs.rfc5545.iterable.instanceiterable.RuleInstances;
+import org.dmfs.rfc5545.recur.RecurrenceRule;
 import ws.xsoh.etar.R;
 
 // TODO: should Event be Parcelable so it can be passed via Intents?
@@ -59,7 +55,7 @@ public class Event implements Cloneable {
      * 1) events with an earlier start (begin for normal events, startday for allday)
      * 2) events with a later end (end for normal events, endday for allday)
      * 3) the title (unnecessary, but nice)
-     *
+     * <p>
      * The start and end day is sorted first so that all day events are
      * sorted correctly with respect to events that are >24 hours (and
      * therefore show up in the allday area).
@@ -70,7 +66,7 @@ public class Event implements Cloneable {
             "startDay ASC, endDay DESC, title ASC";
     private static final String DISPLAY_AS_ALLDAY = "dispAllday";
     // The projection to use when querying instances to build a list of events
-    public static final String[] EVENT_PROJECTION = new String[] {
+    public static final String[] EVENT_PROJECTION = new String[]{
             Instances.TITLE,                 // 0
             Instances.EVENT_LOCATION,        // 1
             Instances.ALL_DAY,               // 2
@@ -130,6 +126,40 @@ public class Event implements Cloneable {
     public boolean guestsCanModify;
 
     public int startDay;       // start Julian day
+
+    @Override
+    public String toString() {
+        return "Event{" +
+                "id=" + id +
+                ", color=" + color +
+                ", title=" + title +
+                ", location=" + location +
+                ", allDay=" + allDay +
+                ", organizer='" + organizer + '\'' +
+                ", guestsCanModify=" + guestsCanModify +
+                ", startDay=" + startDay +
+                ", endDay=" + endDay +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", startMillis=" + startMillis +
+                ", endMillis=" + endMillis +
+                ", hasAlarm=" + hasAlarm +
+                ", isRepeating=" + isRepeating +
+                ", status=" + status +
+                ", selfAttendeeStatus=" + selfAttendeeStatus +
+                ", left=" + left +
+                ", right=" + right +
+                ", top=" + top +
+                ", bottom=" + bottom +
+                ", nextRight=" + nextRight +
+                ", nextLeft=" + nextLeft +
+                ", nextUp=" + nextUp +
+                ", nextDown=" + nextDown +
+                ", mColumn=" + mColumn +
+                ", mMaxColumns=" + mMaxColumns +
+                '}';
+    }
+
     public int endDay;         // end Julian day
     public int startTime;      // Start and end time are in minutes since midnight
     public int endTime;
@@ -180,7 +210,7 @@ public class Event implements Cloneable {
      * Loads <i>days</i> days worth of instances starting at <i>startDay</i>.
      */
     public static void loadEvents(Context context, ArrayList<Event> events, int startDay, int days,
-            int requestId, AtomicInteger sequenceNumber) {
+                                  int requestId, AtomicInteger sequenceNumber) {
 
         if (PROFILE) {
             Debug.startMethodTracing("loadEvents");
@@ -257,19 +287,19 @@ public class Event implements Cloneable {
      * expanded and will slow down for larger time ranges with many
      * recurring events.
      *
-     * @param cr The ContentResolver to use for the query
-     * @param projection The columns to return
-     * @param begin The start of the time range to query in UTC millis since
-     *            epoch
-     * @param end The end of the time range to query in UTC millis since
-     *            epoch
-     * @param selection Filter on the query as an SQL WHERE statement
+     * @param cr            The ContentResolver to use for the query
+     * @param projection    The columns to return
+     * @param begin         The start of the time range to query in UTC millis since
+     *                      epoch
+     * @param end           The end of the time range to query in UTC millis since
+     *                      epoch
+     * @param selection     Filter on the query as an SQL WHERE statement
      * @param selectionArgs Args to replace any '?'s in the selection
-     * @param orderBy How to order the rows as an SQL ORDER BY statement
+     * @param orderBy       How to order the rows as an SQL ORDER BY statement
      * @return A Cursor of instances matching the selection
      */
     private static final Cursor instancesQuery(ContentResolver cr, String[] projection,
-            int startDay, int endDay, String selection, String[] selectionArgs, String orderBy) {
+                                               int startDay, int endDay, String selection, String[] selectionArgs, String orderBy) {
         String WHERE_CALENDARS_SELECTED = Calendars.VISIBLE + "=?";
         String[] WHERE_CALENDARS_ARGS = {"1"};
         String DEFAULT_SORT_ORDER = "begin ASC";
@@ -293,11 +323,12 @@ public class Event implements Cloneable {
                 orderBy == null ? DEFAULT_SORT_ORDER : orderBy);
     }
 
+
     /**
      * Adds all the events from the cursors to the events list.
      *
-     * @param events The list of events
-     * @param cEvents Events to add to the list
+     * @param events   The list of events
+     * @param cEvents  Events to add to the list
      * @param context
      * @param startDay
      * @param endDay
@@ -399,14 +430,14 @@ public class Event implements Cloneable {
         return e;
     }
 
-    /** Android's RRULE code is broken in a way the creates additional events in certain
-     *  circumstances (though never doesn't create the actual event) so let's use another RRULE
-     *  parser to validate if the event is real or not.
-     *
-     *  In this case we're using lib-recur from https://github.com/dmfs/lib-recur through maven.
-     *
+    /**
+     * Android's RRULE code is broken in a way the creates additional events in certain
+     * circumstances (though never doesn't create the actual event) so let's use another RRULE
+     * parser to validate if the event is real or not.
+     * <p>
+     * In this case we're using lib-recur from https://github.com/dmfs/lib-recur through maven.
      **/
-    static int checkRRuleEventDate( String rrule, long startTime, int endDay) {
+    static int checkRRuleEventDate(String rrule, long startTime, int endDay) {
         // Convert the startTime into some useable Day/Month/Year values.
         Date date = new java.util.Date(startTime);
 
@@ -447,7 +478,7 @@ public class Event implements Cloneable {
         try {
             // Create the recurrence set for the rule, we're only going to look at the first one
             // as it should match the firstInstance if this is a valid event from Android.
-            for (DateTime instance:newRecurrenceSet) {
+            for (DateTime instance : newRecurrenceSet) {
                 if (!instance.equals(firstInstance)) {
                     // If this isn't a valid event, return 0 so it gets removed from the event list.
                     return 0;
@@ -475,12 +506,13 @@ public class Event implements Cloneable {
      * rectangle depend on the maximum number of rectangles that occur at
      * the same time.
      *
-     * @param eventsList the list of events, sorted into increasing time order
+     * @param eventsList            the list of events, sorted into increasing time order
      * @param minimumDurationMillis minimum duration acceptable as cell height of each event
-     * rectangle in millisecond. Should be 0 when it is not determined.
+     *                              rectangle in millisecond. Should be 0 when it is not determined.
      */
-    /* package */ static void computePositions(ArrayList<Event> eventsList,
-            long minimumDurationMillis) {
+    /* package */
+    static void computePositions(ArrayList<Event> eventsList,
+                                 long minimumDurationMillis) {
         if (eventsList == null) {
             return;
         }
@@ -491,7 +523,7 @@ public class Event implements Cloneable {
     }
 
     private static void doComputePositions(ArrayList<Event> eventsList,
-            long minimumDurationMillis, boolean doAlldayEvents) {
+                                           long minimumDurationMillis, boolean doAlldayEvents) {
         final ArrayList<Event> activeList = new ArrayList<Event>();
         final ArrayList<Event> groupList = new ArrayList<Event>();
 
@@ -506,7 +538,7 @@ public class Event implements Cloneable {
             if (event.drawAsAllday() != doAlldayEvents)
                 continue;
 
-           if (!doAlldayEvents) {
+            if (!doAlldayEvents) {
                 colMask = removeNonAlldayActiveEvents(
                         event, activeList.iterator(), minimumDurationMillis, colMask);
             } else {
@@ -557,7 +589,11 @@ public class Event implements Cloneable {
     }
 
     private static long removeNonAlldayActiveEvents(
-            Event event, Iterator<Event> iter, long minDurationMillis, long colMask) {
+            Event event,
+            Iterator<Event> iter,
+            long minDurationMillis,
+            long colMask
+    ) {
         long start = event.getStartMillis();
         // Remove the inactive events. An event on the active list
         // becomes inactive when its end time is less than or equal to
@@ -565,13 +601,19 @@ public class Event implements Cloneable {
         while (iter.hasNext()) {
             final Event active = iter.next();
 
-            final long duration = Math.max(
-                    active.getEndMillis() - active.getStartMillis(), minDurationMillis);
+            final long duration =
+                    Math.max(active.getEndMillis() - active.getStartMillis(), minDurationMillis);
+
+            Log.d(
+                    "DayView",
+                    "event = "  + event.title + "   endTime = " + active.getEndMillis() + "     start = " + active.getStartMillis() + "     减 = " + (active.getEndMillis() - active.getStartMillis())
+            );
             if ((active.getStartMillis() + duration) <= start) {
                 colMask &= ~(1L << active.getColumn());
                 iter.remove();
             }
         }
+        Log.d("DayView", "colMask = " + colMask);
         return colMask;
     }
 
@@ -644,7 +686,7 @@ public class Event implements Cloneable {
     }
 
     public final boolean intersects(int julianDay, int startMinute,
-            int endMinute) {
+                                    int endMinute) {
         if (endDay < julianDay) {
             return false;
         }

@@ -99,7 +99,6 @@ public class EventLoader {
      *
      * @param startDay   First day to check for events
      * @param numDays    Days following the start day to check
-     * @param eventDay   Whether or not an event exists on that day
      * @param uiCallback What to do when done (log data, redraw screen)
      */
     void loadEventDaysInBackground(int startDay, int numDays, boolean[] eventDays,
